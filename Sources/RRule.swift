@@ -14,6 +14,7 @@ public struct RRule {
         let dateFormatter = DateFormatter()
         dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
         dateFormatter.dateFormat = "yyyyMMdd'T'HHmmss'Z'"
+        dateFormatter.locale = Locale(identifier: "en_GB")
         return dateFormatter
     }()
 
@@ -21,6 +22,7 @@ public struct RRule {
         let dateFormatter = DateFormatter()
         dateFormatter.timeZone = TimeZone(secondsFromGMT: 0)
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+        dateFormatter.locale = Locale(identifier: "en_GB")
         return dateFormatter
     }()
 
@@ -31,7 +33,7 @@ public struct RRule {
         }
         let ruleString = String(string.suffix(from: range.upperBound))
         let rules = ruleString.components(separatedBy: ";").flatMap { (rule) -> String? in
-            if (rule.isEmpty || rule.characters.count == 0) {
+            if (rule.isEmpty || rule.count == 0) {
                 return nil
             }
             return rule
@@ -46,7 +48,7 @@ public struct RRule {
             }
             let ruleName = ruleComponents[0]
             let ruleValue = ruleComponents[1]
-            guard !ruleValue.isEmpty && ruleValue.characters.count > 0 else {
+            guard !ruleValue.isEmpty && ruleValue.count > 0 else {
                 continue
             }
 
@@ -268,8 +270,8 @@ public struct RRule {
             rruleString += "BYSECOND=\(bysecondStrings.joined(separator: ","));"
         }
 
-        if String(rruleString.suffix(from: rruleString.characters.index(rruleString.endIndex, offsetBy: -1))) == ";" {
-            rruleString.remove(at: rruleString.characters.index(rruleString.endIndex, offsetBy: -1))
+        if String(rruleString.suffix(from: rruleString.index(rruleString.endIndex, offsetBy: -1))) == ";" {
+            rruleString.remove(at: rruleString.index(rruleString.endIndex, offsetBy: -1))
         }
 
         return rruleString

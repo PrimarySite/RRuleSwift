@@ -26,7 +26,7 @@ public struct ExclusionDate {
         }
         let exdateString = String(string.suffix(from: range.upperBound))
         let exdates = exdateString.components(separatedBy: ",").flatMap { (dateString) -> String? in
-            if (dateString.isEmpty || dateString.characters.count == 0) {
+            if (dateString.isEmpty || dateString.count == 0) {
                 return nil
             }
             return dateString
@@ -47,8 +47,8 @@ public struct ExclusionDate {
             exdateString += dateStrings.joined(separator: ",")
         }
 
-        if String(exdateString.suffix(from: exdateString.characters.index(exdateString.endIndex, offsetBy: -1))) == "," {
-            exdateString.remove(at: exdateString.characters.index(exdateString.endIndex, offsetBy: -1))
+        if String(exdateString.suffix(from: exdateString.index(exdateString.endIndex, offsetBy: -1))) == "," {
+            exdateString.remove(at: exdateString.index(exdateString.endIndex, offsetBy: -1))
         }
 
         return exdateString

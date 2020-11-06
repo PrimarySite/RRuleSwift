@@ -149,8 +149,8 @@ internal extension RecurrenceRule {
             jsonString += "bysecond: [\(bysecondStrings.joined(separator: ","))]"
         }
 
-        if String(jsonString.suffix(from: jsonString.characters.index(jsonString.endIndex, offsetBy: -1))) == "," {
-            jsonString.remove(at: jsonString.characters.index(jsonString.endIndex, offsetBy: -1))
+        if String(jsonString.suffix(from: jsonString.index(jsonString.endIndex, offsetBy: -1))) == "," {
+            jsonString.remove(at: jsonString.index(jsonString.endIndex, offsetBy: -1))
         }
 
         return jsonString
