@@ -16,6 +16,13 @@ public struct Iterator {
             return nil
         }
         let context = JSContext()
+        
+        let nativeLog: @convention(block) (String) -> Void = { message in
+            NSLog("JS Log: \(message)")
+        }
+        
+        context?.setObject(nativeLog, forKeyedSubscript: "nativeLog" as NSString)
+        
         context?.exceptionHandler = { context, exception in
             print("[RRuleSwift] rrule.js error: \(String(describing: exception))")
         }
@@ -25,70 +32,33 @@ public struct Iterator {
 }
 
 public extension RecurrenceRule {
-    public func allOccurrences(endless endlessRecurrenceCount: Int = Iterator.endlessRecurrenceCount) -> [Date] {
-        guard let _ = JavaScriptBridge.rrulejs() else {
-            return []
+    
+    
+    internal func iterate(_ ruleString: String, options: String, beginDate: Date, endDate: Date) -> [Date] {
+        var events = [Date]()
+        var ruleString = ruleString
+        let jsModule = Iterator.rruleContext?.objectForKeyedSubscript("RRuleSwift")
+        let jsAnalyzer = jsModule?.objectForKeyedSubscript("Iterator")
+        
+        let limitClause = ";COUNT=\(Iterator.endlessRecurrenceCount)"
+        if recurrenceEnd == nil {
+            ruleString += limitClause
+        }
+        
+        if let result = jsAnalyzer?.objectForKeyedSubscript("iterate").call(withArguments: [ruleString, options, beginDate, endDate]) {
+            events = result.toArray() as? [Date] ?? []
         }
 
-        let ruleJSONString = toJSONString(endless: endlessRecurrenceCount)
-        let _ = Iterator.rruleContext?.evaluateScript("var rule = new RRule({ \(ruleJSONString) })")
-        guard let allOccurrences = Iterator.rruleContext?.evaluateScript("rule.all()").toArray() as? [Date] else {
-            return []
-        }
-
-        var occurrences = allOccurrences
-        if let rdates = rdate?.dates {
-            occurrences.append(contentsOf: rdates)
-        }
-
-        if let exdates = exdate?.dates, let component = exdate?.component {
-            for occurrence in occurrences {
-                for exdate in exdates {
-                    if calendar.isDate(occurrence, equalTo: exdate, toGranularity: component) {
-                        let index = occurrences.index(of: occurrence)!
-                        occurrences.remove(at: index)
-                        break
-                    }
-                }
-            }
-        }
-
-        return occurrences.sorted { $0.isBeforeOrSame(with: $1) }
+        return events
     }
-
-    public func occurrences(between date: Date, and otherDate: Date, endless endlessRecurrenceCount: Int = Iterator.endlessRecurrenceCount) -> [Date] {
+    
+    func occurrences(between date: Date = .distantPast, and otherDate: Date = .distantFuture, limit endlessRecurrenceCount: Int = Iterator.endlessRecurrenceCount, timeZone: TimeZone? = nil) -> [Date] {
         guard let _ = JavaScriptBridge.rrulejs() else {
             return []
         }
-
-        let beginDate = date.isBeforeOrSame(with: otherDate) ? date : otherDate
-        let untilDate = otherDate.isAfterOrSame(with: date) ? otherDate : date
-        let beginDateJSON = RRule.ISO8601DateFormatter.string(from: beginDate)
-        let untilDateJSON = RRule.ISO8601DateFormatter.string(from: untilDate)
-
-        let ruleJSONString = toJSONString(endless: endlessRecurrenceCount)
-        let _ = Iterator.rruleContext?.evaluateScript("var rule = new RRule({ \(ruleJSONString) })")
-        guard let betweenOccurrences = Iterator.rruleContext?.evaluateScript("rule.between(new Date('\(beginDateJSON)'), new Date('\(untilDateJSON)'))").toArray() as? [Date] else {
-            return []
-        }
-
-        var occurrences = betweenOccurrences
-        if let rdates = rdate?.dates {
-            occurrences.append(contentsOf: rdates)
-        }
-
-        if let exdates = exdate?.dates, let component = exdate?.component {
-            for occurrence in occurrences {
-                for exdate in exdates {
-                    if calendar.isDate(occurrence, equalTo: exdate, toGranularity: component) {
-                        let index = occurrences.index(of: occurrence)!
-                        occurrences.remove(at: index)
-                        break
-                    }
-                }
-            }
-        }
-
-        return occurrences.sorted { $0.isBeforeOrSame(with: $1) }
+        
+        let options = timeZone.flatMap { "{ \"tzid\": \"\($0.identifier)\" }" } ?? "{}"
+        
+        return iterate(toRRuleString(), options: options, beginDate: date, endDate: otherDate)
     }
 }

@@ -30,6 +30,9 @@ public struct RecurrenceRule {
     ///
     /// The default value of this property is current date.
     public var startDate = Date()
+    
+    /// The timezone in which the rules must be based on
+    public var timeZone: TimeZone?
 
     /// Indicates when the recurrence rule ends. This can be represented by an end date or a number of occurrences.
     public var recurrenceEnd: EKRecurrenceEnd?
@@ -60,7 +63,7 @@ public struct RecurrenceRule {
     public var bymonthday = [Int]()
 
     /// The days of the week associated with the recurrence rule, as an array of EKWeekday objects.
-    public var byweekday = [EKWeekday]()
+    public var byweekday = [(Int?, EKWeekday)]()
 
     /// The hours of the day associated with the recurrence rule, as an array of integers.
     public var byhour = [Int]()
