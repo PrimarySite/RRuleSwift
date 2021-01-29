@@ -1,5 +1,8 @@
 # Created by https://www.gitignore.io/api/swift
 
+# macOS
+.DS_Store
+
 ### Swift ###
 # Xcode
 #
@@ -131,3 +134,9 @@ Carthage/Build
 fastlane/report.xml
 fastlane/screenshots
 
+# JavaScript
+
+# Dependency directories
+node_modules/
+# Optional npm cache directory
+.npm

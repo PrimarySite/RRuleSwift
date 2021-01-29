@@ -10,8 +10,12 @@ import Foundation
 import EventKit
 
 internal struct JavaScriptBridge {
+    
+    // This class is needed to be able to get out bundle
+    private class DummyClass {}
+    
     internal static func rrulejs() -> String? {
-        let libPath = Bundle(identifier: "Teambition.RRuleSwift-iOS")?.path(forResource: "rrule", ofType: "js") ?? Bundle.main.path(forResource: "rrule", ofType: "js")
+        let libPath = Bundle(for: DummyClass.self).path(forResource: "RRuleSwift.bundle", ofType: "js") ?? Bundle.main.path(forResource: "RRuleSwift.bundle", ofType: "js")
         guard let rrulelibPath = libPath else {
             return nil
         }
@@ -51,7 +55,6 @@ internal extension EKWeekday {
         }
     }
 }
-
 internal extension RecurrenceRule {
     internal func toJSONString(endless endlessRecurrenceCount: Int) -> String {
         var jsonString = "freq: \(frequency.toJSONFrequency()),"
@@ -117,7 +120,7 @@ internal extension RecurrenceRule {
             jsonString += "bymonthday: [\(bymonthdayStrings.joined(separator: ","))],"
         }
 
-        let byweekdayJSSymbols = byweekday.map({ (weekday) -> String in
+        let byweekdayJSSymbols = byweekday.map({ (int, weekday) -> String in
             return weekday.toJSONSymbol()
         })
         if byweekdayJSSymbols.count > 0 {
@@ -145,8 +148,8 @@ internal extension RecurrenceRule {
             jsonString += "bysecond: [\(bysecondStrings.joined(separator: ","))]"
         }
 
-        if String(jsonString.suffix(from: jsonString.characters.index(jsonString.endIndex, offsetBy: -1))) == "," {
-            jsonString.remove(at: jsonString.characters.index(jsonString.endIndex, offsetBy: -1))
+        if String(jsonString.suffix(from: jsonString.index(jsonString.endIndex, offsetBy: -1))) == "," {
+            jsonString.remove(at: jsonString.index(jsonString.endIndex, offsetBy: -1))
         }
 
         return jsonString
