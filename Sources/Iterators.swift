@@ -48,8 +48,19 @@ public extension RecurrenceRule {
         if let result = jsAnalyzer?.objectForKeyedSubscript("iterate").call(withArguments: [ruleString, options, beginDate, endDate]) {
             events = result.toArray() as? [Date] ?? []
         }
-
-        return events
+       
+        if let exdates = exdate?.dates, let component = exdate?.component {
+            for event in events {
+                for exdate in exdates {
+                    if calendar.isDate(event, equalTo: exdate, toGranularity: component) {
+                        let index = events.index(of: event)!
+                        events.remove(at: index)
+                        break
+                    }
+                }
+            }
+        }
+        return events.sorted { $0.isBeforeOrSame(with: $1) }
     }
     
     func occurrences(between date: Date = .distantPast, and otherDate: Date = .distantFuture, limit endlessRecurrenceCount: Int = Iterator.endlessRecurrenceCount, timeZone: TimeZone? = nil) -> [Date] {
